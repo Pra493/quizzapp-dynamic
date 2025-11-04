@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz App</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        var stompClient = null;
+
+        function connect() {
+            var socket = new SockJS('/quiz-websocket');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/quiz', function(messageOutput) {
+                    showQuestion(messageOutput.body);
+                });
+            });
+        }
+
+        function sendQuestion() {
+            var question = document.getElementById('question').value;
+            stompClient.send("/app/sendQuestion", {}, question);
+        }
+
+        function showQuestion(message) {
+            document.getElementById("quizArea").innerHTML += "<p>" + message + "</p>";
+        }
+
+        window.onload = connect;
+    </script>
+</head>
+<body>
+    <h2>Real-Time Quiz App</h2>
+    <input type="text" id="question" placeholder="Type a question...">
+    <button onclick="sendQuestion()">Send</button>
+    <div id="quizArea"></div>
+</body>
+</html>
